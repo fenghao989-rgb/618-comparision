@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>618满减比价助手</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FF4757',
+            secondary: '#FF6B81',
+            accent: '#FFA502',
+            dark: '#1a1a2e',
+            darker: '#16213e',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .progress-bar {
+      transition: width 0.5s ease-in-out;
+    }
+    .card-hover {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50 dark:bg-dark transition-colors duration-300">
+  <div id="app" class="min-h-screen">
+    <!-- 头部 -->
+    <header class="bg-gradient-to-r from-primary to-secondary text-white shadow-lg">
+      <div class="container mx-auto px-4 py-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🔥</span>
+            <div>
+              <h1 class="text-2xl md:text-3xl font-bold">618 满减比价助手</h1>
+              <p class="text-sm opacity-80">智能计算最优价格，省钱又省心</p>
+            </div>
+          </div>
+          <button 
+            @click="toggleDarkMode"
+            class="p-2 rounded-full hover:bg-white/20 transition-colors"
+            :title="darkMode ? '切换亮色模式' : '切换深色模式'"
+          >
+            <i :class="darkMode ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl'"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+      <!-- 场景预设 -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">快速场景选择</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <button
+            v-for="(preset, key) in presets"
+            :key="key"
+            @click="applyPreset(key)"
+            :class="[
+              'p-3 rounded-xl border-2 transition-all duration-300 text-center',
+              currentPreset === key 
+                ? 'border-primary bg-primary/10 dark:bg-primary/20' 
+                : 'border-gray-200 dark:border-gray-700 hover:border-primary/50 bg-white dark:bg-darker'
+            ]"
+          >
+            <div class="text-2xl mb-1">{{ preset.icon }}</div>
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ preset.name }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 用户输入区 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200 flex items-center gap-2">
+              <i class="fas fa-input-text"></i> 商品信息
+            </h2>
+            
+            <!-- 商品价格 -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">商品价格</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
+                <input 
+                  v-model.number="price"
+                  type="number"
+                  placeholder="请输入商品价格"
+                  class="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- 商品类别 -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">商品类别</label>
+              <select 
+                v-model="category"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              >
+                <option v-for="(cat, key) in categories" :key="key" :value="key">
+                  {{ cat.icon }} {{ cat.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- 品类政策说明 -->
+            <div v-if="currentCategory" class="mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">当前品类政策</h4>
+              <div class="space-y-1 text-xs">
+                <div :class="['flex justify-between', currentCategory.subsidyRate > 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400']">
+                  <span>国补政策:</span>
+                  <span>{{ currentCategory.subsidyLabel }}</span>
+                </div>
+                <div :class="['flex justify-between', currentCategory.hasIndustryCoupon ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400']">
+                  <span>行业券:</span>
+                  <span>{{ currentCategory.hasIndustryCoupon ? currentCategory.industryCoupon.label : '无' }}</span>
+                </div>
+                <div :class="['flex justify-between', currentCategory.vipAvailable ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400']">
+                  <span>会员券:</span>
+                  <span>{{ currentCategory.vipLabel }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 优惠券选项 -->
+            <div class="space-y-3 mb-6">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">优惠券选项</label>
+              
+              <label :class="[
+                'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                currentCategory && !currentCategory.vipAvailable ? 'opacity-50 cursor-not-allowed' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+              ]">
+                <input type="checkbox" v-model="hasVip" :disabled="currentCategory && !currentCategory.vipAvailable" class="w-5 h-5 rounded text-primary focus:ring-primary/50" />
+                <span class="text-gray-700 dark:text-gray-300">会员大额券</span>
+                <span v-if="currentCategory && currentCategory.vipLabel" class="text-xs text-gray-400 ml-auto">{{ currentCategory.vipLabel }}</span>
+              </label>
+              
+              <label :class="[
+                'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                currentCategory && !currentCategory.hasIndustryCoupon ? 'opacity-50 cursor-not-allowed' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+              ]">
+                <input type="checkbox" v-model="hasIndustryCoupon" :disabled="currentCategory && !currentCategory.hasIndustryCoupon" class="w-5 h-5 rounded text-primary focus:ring-primary/50" />
+                <span class="text-gray-700 dark:text-gray-300">行业专属券</span>
+                <span v-if="currentCategory && currentCategory.hasIndustryCoupon" class="text-xs text-gray-400 ml-auto">{{ currentCategory.industryCoupon.label }}</span>
+              </label>
+              
+              <label :class="[
+                'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                currentCategory && currentCategory.subsidyRate === 0 ? 'opacity-50 cursor-not-allowed' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+              ]">
+                <input type="checkbox" v-model="hasSubsidy" :disabled="currentCategory && currentCategory.subsidyRate === 0" class="w-5 h-5 rounded text-primary focus:ring-primary/50" />
+                <span class="text-gray-700 dark:text-gray-300">政府以旧换新补贴</span>
+                <span v-if="currentCategory && currentCategory.subsidyRate > 0" class="text-xs text-gray-400 ml-auto">{{ currentCategory.subsidyLabel }}</span>
+              </label>
+            </div>
+
+            <!-- 赠品价值 -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">赠品价值（选填）</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
+                <input 
+                  v-model.number="giftValue"
+                  type="number"
+                  placeholder="赠品折算价值"
+                  class="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- 凑单进度条 -->
+            <div v-if="price > 0" class="mb-6">
+              <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span>凑单进度</span>
+                <span>{{ progressInfo.text }}</span>
+              </div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  class="progress-bar h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                  :style="{ width: progressInfo.percent + '%' }"
+                ></div>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">{{ progressInfo.tip }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 结果对比区 -->
+        <div class="lg:col-span-2">
+          <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200 flex items-center gap-2">
+              <i class="fas fa-chart-bar"></i> 比价结果
+            </h2>
+            
+            <div v-if="!price || price <= 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+              <i class="fas fa-shopping-cart text-6xl mb-4 opacity-30"></i>
+              <p>请输入商品价格开始计算</p>
+            </div>
+
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="result in results" 
+                :key="result.platform"
+                :class="[
+                  'p-4 rounded-xl border-2 transition-all card-hover',
+                  result.isBest 
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-lg' 
+                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-dark'
+                ]"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl">{{ result.icon }}</span>
+                    <div>
+                      <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-sm">{{ result.name }}</h3>
+                      <span v-if="result.isBest" class="text-xs bg-primary text-white px-2 py-0.5 rounded-full">最优</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 line-through">原价 ¥{{ result.original }}</div>
+                  <div class="text-2xl font-bold text-primary">¥{{ result.final }}</div>
+                  <div class="text-xs text-green-500">省 ¥{{ result.saved }} ({{ result.discountPercent }}%)</div>
+                </div>
+                
+                <div class="text-xs text-gray-500 dark:text-gray-500 space-y-1">
+                  <div v-if="result.steps.reduction" class="flex justify-between">
+                    <span>官方立减</span>
+                    <span class="text-primary">-¥{{ result.steps.reduction }}</span>
+                  </div>
+                  <div v-if="result.steps.subsidy" class="flex justify-between">
+                    <span>国补</span>
+                    <span class="text-green-500">-¥{{ result.steps.subsidy }}</span>
+                  </div>
+                  <div v-if="result.steps.fullReduction" class="flex justify-between">
+                    <span>跨店满减</span>
+                    <span class="text-primary">-¥{{ result.steps.fullReduction }}</span>
+                  </div>
+                  <div v-if="result.steps.extra" class="flex justify-between">
+                    <span>额外补贴</span>
+                    <span class="text-accent">-¥{{ result.steps.extra }}</span>
+                  </div>
+                  <div v-if="result.steps.coupon" class="flex justify-between">
+                    <span>大额券</span>
+                    <span class="text-primary">-¥{{ result.steps.coupon }}</span>
+                  </div>
+                  <div v-if="giftValue > 0" class="flex justify-between">
+                    <span>赠品价值</span>
+                    <span class="text-blue-500">-¥{{ giftValue }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 最优选择提示 -->
+            <div v-if="price > 0 && bestResult" class="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 rounded-xl">
+              <div class="flex items-center gap-3">
+                <span class="text-3xl">🎉</span>
+                <div>
+                  <p class="font-semibold text-gray-800 dark:text-gray-200">最佳选择：{{ bestResult.name }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    实付 ¥{{ bestResult.final }}，相当于原价的 {{ bestResult.discountPercent }}%，共节省 ¥{{ bestResult.saved }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-100 dark:bg-darker mt-12 py-6">
+      <div class="container mx-auto px-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+        <p>618 满减比价助手 - 帮你找到最优惠的价格</p>
+        <p class="mt-1">数据仅供参考，实际价格以平台为准</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, watch } = Vue
+
+    const rules = {
+      platforms: {
+        tmall: { name: '天猫 618', threshold: 300, discount: 50, officialReduction: 0.15, vipDiscount: { name: '88VIP', threshold: 1500, discount: 120 }, extraReductions: 30, icon: '🛒' },
+        jd: { name: '京东 618', threshold: 299, discount: 50, officialReduction: 0.1, vipDiscount: { name: 'PLUS', threshold: 1999, discount: 150 }, extraReductions: 60, icon: '📦' },
+        pinduoduo: { name: '拼多多 618', threshold: 200, discount: 30, officialReduction: 0.12, vipDiscount: { name: '超级会员', threshold: 1000, discount: 80 }, extraReductions: 20, icon: '💰' },
+        suning: { name: '苏宁 618', threshold: 399, discount: 60, officialReduction: 0.1, vipDiscount: { name: 'SUPER', threshold: 1500, discount: 100 }, extraReductions: 40, icon: '📺' },
+        taobao: { name: '淘宝 618', threshold: 200, discount: 30, officialReduction: 0.1, extraReductions: 15, icon: '👕' },
+        jd_mall: { name: '京东自营', threshold: 299, discount: 50, officialReduction: 0.12, vipDiscount: { name: 'PLUS', threshold: 1999, discount: 150 }, extraReductions: 80, icon: '🚚' }
+      },
+      categories: {
+        digital: { name: '数码产品', icon: '📱', subsidyRate: 0.15, subsidyLabel: '适用国补（15%）', hasIndustryCoupon: true, industryCoupon: { threshold: 2000, discount: 200, label: '满2000减200' }, vipAvailable: true, vipLabel: '适用88VIP/PLUS' },
+        cosmetics: { name: '美妆护肤', icon: '💄', subsidyRate: 0, subsidyLabel: '不适用国补', hasIndustryCoupon: true, industryCoupon: { threshold: 500, discount: 50, label: '满500减50' }, vipAvailable: true, vipLabel: '适用88VIP' },
+        food: { name: '食品生鲜', icon: '🍎', subsidyRate: 0, subsidyLabel: '不适用国补', hasIndustryCoupon: false, vipAvailable: false, vipLabel: '无会员券' },
+        clothing: { name: '服装服饰', icon: '👔', subsidyRate: 0.1, subsidyLabel: '适用国补（10%）', hasIndustryCoupon: true, industryCoupon: { threshold: 300, discount: 30, label: '满300减30' }, vipAvailable: true, vipLabel: '适用88VIP/PLUS' },
+        home: { name: '家居家装', icon: '🏠', subsidyRate: 0.18, subsidyLabel: '适用国补（18%）', hasIndustryCoupon: true, industryCoupon: { threshold: 1000, discount: 150, label: '满1000减150' }, vipAvailable: true, vipLabel: '适用PLUS' },
+        appliance: { name: '大家电', icon: '📺', subsidyRate: 0.2, subsidyLabel: '适用国补（20%）', hasIndustryCoupon: true, industryCoupon: { threshold: 3000, discount: 300, label: '满3000减300' }, vipAvailable: true, vipLabel: '适用PLUS/SUPER' },
+        baby: { name: '母婴用品', icon: '🍼', subsidyRate: 0, subsidyLabel: '不适用国补', hasIndustryCoupon: true, industryCoupon: { threshold: 400, discount: 40, label: '满400减40' }, vipAvailable: true, vipLabel: '适用88VIP' },
+        sports: { name: '运动户外', icon: '⚽', subsidyRate: 0.1, subsidyLabel: '适用国补（10%）', hasIndustryCoupon: true, industryCoupon: { threshold: 600, discount: 60, label: '满600减60' }, vipAvailable: true, vipLabel: '适用88VIP/PLUS' },
+        books: { name: '图书文具', icon: '📚', subsidyRate: 0, subsidyLabel: '不适用国补', hasIndustryCoupon: true, industryCoupon: { threshold: 100, discount: 15, label: '满100减15' }, vipAvailable: false, vipLabel: '无会员券' },
+        others: { name: '其他品类', icon: '🎁', subsidyRate: 0, subsidyLabel: '不适用国补', hasIndustryCoupon: false, vipAvailable: false, vipLabel: '无会员券' }
+      },
+      presets: {
+        digitalFan: { name: '数码党', icon: '💻', category: 'digital', hasVip: true, hasSubsidy: true, hasIndustryCoupon: true },
+        beautyLover: { name: '美妆控', icon: '💄', category: 'cosmetics', hasVip: true, hasSubsidy: false, hasIndustryCoupon: true },
+        stockUpMaster: { name: '囤货达人', icon: '📦', category: 'food', hasVip: false, hasSubsidy: false, hasIndustryCoupon: false },
+        homeDecorator: { name: '家装达人', icon: '🏠', category: 'home', hasVip: true, hasSubsidy: true, hasIndustryCoupon: true },
+        momHelper: { name: '宝妈助手', icon: '🍼', category: 'baby', hasVip: true, hasSubsidy: false, hasIndustryCoupon: true }
+      }
+    }
+
+    createApp({
+      setup() {
+        const darkMode = ref(false)
+        const price = ref(0)
+        const category = ref('digital')
+        const hasVip = ref(false)
+        const hasIndustryCoupon = ref(false)
+        const hasSubsidy = ref(false)
+        const giftValue = ref(0)
+        const currentPreset = ref('')
+
+        const platforms = computed(() => rules.platforms)
+        const categories = computed(() => rules.categories)
+        const presets = computed(() => rules.presets)
+
+        const currentCategory = computed(() => categories.value[category.value])
+
+        const applyPreset = (key) => {
+          const preset = presets.value[key]
+          if (preset) {
+            category.value = preset.category
+            hasVip.value = preset.hasVip
+            hasSubsidy.value = preset.hasSubsidy
+            hasIndustryCoupon.value = preset.hasIndustryCoupon
+            currentPreset.value = key
+          }
+        }
+
+        const progressInfo = computed(() => {
+          if (!price.value) return { percent: 0, text: '请输入价格', tip: '' }
+          
+          const thresholds = Object.values(platforms.value).map(p => p.threshold)
+          const minThreshold = Math.min(...thresholds)
+          
+          const current = price.value
+          const target = Math.ceil(current / minThreshold) * minThreshold
+          const needed = target - current
+          const percent = Math.min(100, (current / target) * 100)
+          
+          if (needed <= 0) {
+            return { 
+              percent: 100, 
+              text: '已满足满减条件', 
+              tip: `当前金额可享受 ${Math.floor(current / minThreshold)} 次满减` 
+            }
+          }
+          
+          return { 
+            percent, 
+            text: `还差 ¥${needed.toFixed(2)} 可减 ¥${Math.floor(target / minThreshold) * 50}`, 
+            tip: `建议再凑单 ¥${needed.toFixed(2)} 的商品` 
+          }
+        })
+
+        const results = computed(() => {
+          if (!price.value || price.value <= 0) return []
+          
+          const original = price.value
+          const cat = categories.value[category.value]
+          const results = []
+          
+          for (const [key, platform] of Object.entries(platforms.value)) {
+            let final = original
+            const steps = {}
+            
+            if (platform.officialReduction) {
+              const reduction = original * platform.officialReduction
+              final -= reduction
+              steps.reduction = reduction.toFixed(2)
+            }
+            
+            if (hasSubsidy.value && cat.subsidyRate) {
+              const subsidy = final * cat.subsidyRate
+              final -= subsidy
+              steps.subsidy = subsidy.toFixed(2)
+            }
+            
+            const groups = Math.floor(final / platform.threshold)
+            const fullReduction = groups * platform.discount
+            final -= fullReduction
+            steps.fullReduction = fullReduction.toFixed(2)
+            
+            if (platform.extraReductions) {
+              final -= platform.extraReductions
+              steps.extra = platform.extraReductions.toFixed(2)
+            }
+            
+            if (hasVip.value && platform.vipDiscount && final >= platform.vipDiscount.threshold) {
+              final -= platform.vipDiscount.discount
+              steps.coupon = platform.vipDiscount.discount.toFixed(2)
+            }
+            
+            if (hasIndustryCoupon.value && cat.hasIndustryCoupon && final >= cat.industryCoupon.threshold) {
+              final -= cat.industryCoupon.discount
+              if (!steps.coupon) steps.coupon = '0'
+              steps.coupon = (parseFloat(steps.coupon || 0) + cat.industryCoupon.discount).toFixed(2)
+            }
+            
+            if (giftValue.value) {
+              final -= giftValue.value
+            }
+            
+            final = Math.max(0, final)
+            const saved = (original - final).toFixed(2)
+            const discountPercent = ((final / original) * 100).toFixed(1)
+            
+            results.push({
+              platform: key,
+              name: platform.name,
+              icon: platform.icon,
+              original: original.toFixed(2),
+              final: final.toFixed(2),
+              saved,
+              discountPercent,
+              steps,
+              isBest: false
+            })
+          }
+          
+          if (results.length > 0) {
+            const minFinal = Math.min(...results.map(r => parseFloat(r.final)))
+            results.forEach(r => {
+              if (parseFloat(r.final) === minFinal) {
+                r.isBest = true
+              }
+            })
+          }
+          
+          return results
+        })
+
+        const bestResult = computed(() => {
+          return results.value.find(r => r.isBest)
+        })
+
+        const toggleDarkMode = () => {
+          darkMode.value = !darkMode.value
+          if (darkMode.value) {
+            document.documentElement.classList.add('dark')
+          } else {
+            document.documentElement.classList.remove('dark')
+          }
+        }
+
+        watch(category, (newCat) => {
+          const cat = categories.value[newCat]
+          if (cat) {
+            if (!cat.vipAvailable) hasVip.value = false
+            if (!cat.hasIndustryCoupon) hasIndustryCoupon.value = false
+            if (cat.subsidyRate === 0) hasSubsidy.value = false
+          }
+        })
+
+        return {
+          darkMode,
+          price,
+          category,
+          hasVip,
+          hasIndustryCoupon,
+          hasSubsidy,
+          giftValue,
+          currentPreset,
+          platforms,
+          categories,
+          presets,
+          currentCategory,
+          applyPreset,
+          progressInfo,
+          results,
+          bestResult,
+          toggleDarkMode
+        }
+      }
+    }).mount('#app')
+
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark')
+    }
+  </script>
+</body>
+</html>

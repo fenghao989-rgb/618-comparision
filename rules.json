@@ -1,0 +1,251 @@
+{
+  "platforms": {
+    "tmall": {
+      "name": "天猫 618",
+      "threshold": 300,
+      "discount": 50,
+      "officialReduction": 0.15,
+      "vipDiscount": {
+        "name": "88VIP消费券",
+        "threshold": 1500,
+        "discount": 120
+      },
+      "extraReductions": 30,
+      "icon": "🛒"
+    },
+    "jd": {
+      "name": "京东 618",
+      "threshold": 299,
+      "discount": 50,
+      "officialReduction": 0.1,
+      "vipDiscount": {
+        "name": "PLUS会员券",
+        "threshold": 1999,
+        "discount": 150
+      },
+      "extraReductions": 60,
+      "icon": "📦"
+    },
+    "pinduoduo": {
+      "name": "拼多多 618",
+      "threshold": 200,
+      "discount": 30,
+      "officialReduction": 0.12,
+      "vipDiscount": {
+        "name": "超级会员",
+        "threshold": 1000,
+        "discount": 80
+      },
+      "extraReductions": 20,
+      "icon": "💰"
+    },
+    "suning": {
+      "name": "苏宁 618",
+      "threshold": 399,
+      "discount": 60,
+      "officialReduction": 0.1,
+      "vipDiscount": {
+        "name": "SUPER会员",
+        "threshold": 1500,
+        "discount": 100
+      },
+      "extraReductions": 40,
+      "icon": "📺"
+    },
+    "taobao": {
+      "name": "淘宝 618",
+      "threshold": 200,
+      "discount": 30,
+      "officialReduction": 0.1,
+      "extraReductions": 15,
+      "icon": "👕"
+    },
+    "jd_mall": {
+      "name": "京东自营",
+      "threshold": 299,
+      "discount": 50,
+      "officialReduction": 0.12,
+      "vipDiscount": {
+        "name": "PLUS会员",
+        "threshold": 1999,
+        "discount": 150
+      },
+      "extraReductions": 80,
+      "icon": "🚚"
+    }
+  },
+  "categories": {
+    "digital": {
+      "name": "数码产品",
+      "icon": "📱",
+      "subsidyRate": 0.15,
+      "subsidyLabel": "适用国补（15%）",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 2000,
+        "discount": 200,
+        "label": "满2000减200"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用88VIP/PLUS"
+    },
+    "cosmetics": {
+      "name": "美妆护肤",
+      "icon": "💄",
+      "subsidyRate": 0,
+      "subsidyLabel": "不适用国补",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 500,
+        "discount": 50,
+        "label": "满500减50"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用88VIP"
+    },
+    "food": {
+      "name": "食品生鲜",
+      "icon": "🍎",
+      "subsidyRate": 0,
+      "subsidyLabel": "不适用国补",
+      "hasIndustryCoupon": false,
+      "vipAvailable": false,
+      "vipLabel": "无会员券"
+    },
+    "clothing": {
+      "name": "服装服饰",
+      "icon": "👔",
+      "subsidyRate": 0.1,
+      "subsidyLabel": "适用国补（10%）",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 300,
+        "discount": 30,
+        "label": "满300减30"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用88VIP/PLUS"
+    },
+    "home": {
+      "name": "家居家装",
+      "icon": "🏠",
+      "subsidyRate": 0.18,
+      "subsidyLabel": "适用国补（18%）",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 1000,
+        "discount": 150,
+        "label": "满1000减150"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用PLUS"
+    },
+    "appliance": {
+      "name": "大家电",
+      "icon": "📺",
+      "subsidyRate": 0.2,
+      "subsidyLabel": "适用国补（20%）",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 3000,
+        "discount": 300,
+        "label": "满3000减300"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用PLUS/SUPER"
+    },
+    "母婴": {
+      "name": "母婴用品",
+      "icon": "🍼",
+      "subsidyRate": 0,
+      "subsidyLabel": "不适用国补",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 400,
+        "discount": 40,
+        "label": "满400减40"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用88VIP"
+    },
+    "sports": {
+      "name": "运动户外",
+      "icon": "⚽",
+      "subsidyRate": 0.1,
+      "subsidyLabel": "适用国补（10%）",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 600,
+        "discount": 60,
+        "label": "满600减60"
+      },
+      "vipAvailable": true,
+      "vipLabel": "适用88VIP/PLUS"
+    },
+    "books": {
+      "name": "图书文具",
+      "icon": "📚",
+      "subsidyRate": 0,
+      "subsidyLabel": "不适用国补",
+      "hasIndustryCoupon": true,
+      "industryCoupon": {
+        "threshold": 100,
+        "discount": 15,
+        "label": "满100减15"
+      },
+      "vipAvailable": false,
+      "vipLabel": "无会员券"
+    },
+    "others": {
+      "name": "其他品类",
+      "icon": "🎁",
+      "subsidyRate": 0,
+      "subsidyLabel": "不适用国补",
+      "hasIndustryCoupon": false,
+      "vipAvailable": false,
+      "vipLabel": "无会员券"
+    }
+  },
+  "presets": {
+    "digitalFan": {
+      "name": "数码党",
+      "icon": "💻",
+      "category": "digital",
+      "hasVip": true,
+      "hasSubsidy": true,
+      "hasIndustryCoupon": true
+    },
+    "beautyLover": {
+      "name": "美妆控",
+      "icon": "💄",
+      "category": "cosmetics",
+      "hasVip": true,
+      "hasSubsidy": false,
+      "hasIndustryCoupon": true
+    },
+    "stockUpMaster": {
+      "name": "囤货达人",
+      "icon": "📦",
+      "category": "food",
+      "hasVip": false,
+      "hasSubsidy": false,
+      "hasIndustryCoupon": false
+    },
+    "homeDecorator": {
+      "name": "家装达人",
+      "icon": "🏠",
+      "category": "home",
+      "hasVip": true,
+      "hasSubsidy": true,
+      "hasIndustryCoupon": true
+    },
+    "momHelper": {
+      "name": "宝妈助手",
+      "icon": "🍼",
+      "category": "母婴",
+      "hasVip": true,
+      "hasSubsidy": false,
+      "hasIndustryCoupon": true
+    }
+  }
+}
