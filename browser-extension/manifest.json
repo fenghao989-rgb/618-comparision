@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "618比价助手 - 价格自动获取",
+  "version": "1.0.0",
+  "description": "自动获取淘宝、天猫、京东、拼多多等平台的商品价格，一键同步到比价网页",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.taobao.com/*",
+    "https://*.tmall.com/*",
+    "https://*.jd.com/*",
+    "https://*.pinduoduo.com/*",
+    "https://*.suning.com/*",
+    "https://*.youzan.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.svg",
+      "48": "icons/icon48.svg",
+      "128": "icons/icon128.svg"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.svg",
+    "48": "icons/icon48.svg",
+    "128": "icons/icon128.svg"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.taobao.com/*",
+        "https://*.tmall.com/*",
+        "https://*.jd.com/*",
+        "https://*.pinduoduo.com/*",
+        "https://*.suning.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

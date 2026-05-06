@@ -48,78 +48,44 @@
       <div class="container mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <span class="text-4xl">🔗</span>
+            <span class="text-4xl">🔥</span>
             <div>
               <h1 class="text-2xl md:text-3xl font-bold">618 满减比价助手</h1>
-              <p class="text-sm opacity-80">粘贴商品链接，智能比价</p>
+              <p class="text-sm opacity-80">自动获取各平台价格，智能对比</p>
             </div>
           </div>
-          <button 
-            @click="toggleDarkMode"
-            class="p-2 rounded-full hover:bg-white/20 transition-colors"
-            :title="darkMode ? '切换亮色模式' : '切换深色模式'"
-          >
-            <i :class="darkMode ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl'"></i>
-          </button>
+          <div class="flex items-center gap-2">
+            <span v-if="extensionDataLoaded" class="text-xs bg-green-500 text-white px-2 py-1 rounded-full animate-pulse">📦 数据已同步</span>
+            <button 
+              @click="toggleDarkMode"
+              class="p-2 rounded-full hover:bg-white/20 transition-colors"
+              :title="darkMode ? '切换亮色模式' : '切换深色模式'"
+            >
+              <i :class="darkMode ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl'"></i>
+            </button>
+          </div>
         </div>
       </div>
     </header>
 
     <main class="container mx-auto px-4 py-8">
-      <!-- 链接输入区 -->
+      <!-- 扩展使用说明 -->
       <div class="mb-8">
-        <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
-          <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
-            <i class="fas fa-link"></i> 商品链接解析
-          </h2>
-          
-          <div class="flex gap-3">
-            <input 
-              v-model="productLink"
-              type="text"
-              placeholder="粘贴淘宝/天猫/京东/拼多多商品链接..."
-              class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              @paste="onLinkPaste"
-              @input="onLinkInput"
-            />
-            <button 
-              @click="parseLink"
-              class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition-colors font-medium"
-            >
-              <i class="fas fa-magic"></i> 解析
-            </button>
-          </div>
-          
-          <!-- 解析结果 -->
-          <div v-if="parsedProduct" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <span class="text-2xl">{{ parsedProduct.icon }}</span>
-                <div>
-                  <p class="font-semibold text-gray-800 dark:text-gray-200">{{ parsedProduct.name }}</p>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ parsedProduct.url }}</p>
-                </div>
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-xl shadow-lg p-6">
+          <div class="flex items-start gap-4">
+            <span class="text-4xl">🚀</span>
+            <div class="flex-1">
+              <h2 class="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">浏览器扩展使用指南</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                安装扩展后，在各电商平台商品页面点击扩展图标，即可自动获取价格并同步到比价网页！
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400">🛒 淘宝</span>
+                <span class="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400">🏪 天猫</span>
+                <span class="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400">📦 京东</span>
+                <span class="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400">💰 拼多多</span>
+                <span class="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-400">📺 苏宁</span>
               </div>
-              <span :class="['platform-tag', parsedProduct.platform === 'tmall' ? 'bg-red-100 text-red-600' : parsedProduct.platform === 'jd' ? 'bg-red-100 text-red-600' : parsedProduct.platform === 'pinduoduo' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600']">
-                {{ parsedProduct.platformName }}
-              </span>
-            </div>
-          </div>
-          
-          <!-- 快速搜索链接 -->
-          <div v-if="parsedProduct" class="mt-4">
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">在其他平台搜索同款商品：</p>
-            <div class="flex flex-wrap gap-2">
-              <a 
-                v-for="(platform, key) in searchLinks" 
-                :key="key"
-                :href="platform.url"
-                target="_blank"
-                class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                <span>{{ platform.icon }}</span>
-                {{ platform.name }}
-              </a>
             </div>
           </div>
         </div>
@@ -129,7 +95,8 @@
       <div class="mb-8">
         <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
           <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
-            <i class="fas fa-shopping-cart"></i> 多平台价格对比
+            <i class="fas fa-shopping-cart"></i> 各平台价格
+            <span class="text-xs font-normal text-gray-500">(从扩展自动同步或手动输入)</span>
           </h2>
           
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -366,7 +333,7 @@
   </div>
 
   <script>
-    const { createApp, ref, computed, watch, reactive } = Vue
+    const { createApp, ref, computed, watch, reactive, onMounted } = Vue
 
     const rules = {
       platforms: {
@@ -401,8 +368,7 @@
     createApp({
       setup() {
         const darkMode = ref(false)
-        const productLink = ref('')
-        const parsedProduct = ref(null)
+        const extensionDataLoaded = ref(false)
         const category = ref('digital')
         const hasVip = ref(false)
         const hasIndustryCoupon = ref(false)
@@ -432,79 +398,31 @@
 
         const currentCategory = computed(() => categories.value[category.value])
 
-        const parseLink = () => {
-          const link = productLink.value.trim()
-          if (!link) return
-
-          const platformInfo = parseProductLink(link)
-          if (platformInfo) {
-            parsedProduct.value = platformInfo
-          } else {
-            parsedProduct.value = null
-          }
-        }
-
-        const onLinkPaste = () => {
-          setTimeout(() => parseLink(), 100)
-        }
-
-        const onLinkInput = () => {
-          parsedProduct.value = null
-        }
-
-        const parseProductLink = (url) => {
-          const patterns = {
-            tmall: /(?:tmall\.com|taobao\.com).*?(?:id=(\d+)|item\/(\d+))/i,
-            jd: /jd\.com.*?(\d{6,13})/i,
-            pinduoduo: /pinduoduo\.com.*?(\d{8,})/i
-          }
-
-          for (const [platform, pattern] of Object.entries(patterns)) {
-            const match = url.match(pattern)
-            if (match) {
-              const productId = match[1] || match[2]
-              return {
-                platform,
-                platformName: getPlatformName(platform),
-                icon: getPlatformIcon(platform),
-                id: productId,
-                name: `商品 ID: ${productId}`,
-                url
+        const loadExtensionData = () => {
+          try {
+            const stored = localStorage.getItem('618_prices_from_extension')
+            if (stored) {
+              const data = JSON.parse(stored)
+              if (data.prices && Date.now() - data.timestamp < 30 * 60 * 1000) {
+                for (const [platform, price] of Object.entries(data.prices)) {
+                  if (platformPrices.hasOwnProperty(platform) && price > 0) {
+                    platformPrices[platform] = price
+                  }
+                }
+                extensionDataLoaded.value = true
+                localStorage.removeItem('618_prices_from_extension')
+                setTimeout(() => {
+                  extensionDataLoaded.value = false
+                }, 5000)
               }
             }
+          } catch (e) {
+            console.log('读取扩展数据失败:', e)
           }
-          return null
         }
 
-        const getPlatformName = (platform) => {
-          const names = { tmall: '天猫', jd: '京东', pinduoduo: '拼多多', taobao: '淘宝', suning: '苏宁' }
-          return names[platform] || platform
-        }
-
-        const getPlatformIcon = (platform) => {
-          const icons = { tmall: '🛒', jd: '📦', pinduoduo: '💰', taobao: '👕', suning: '📺' }
-          return icons[platform] || '📦'
-        }
-
-        const searchLinks = computed(() => {
-          if (!parsedProduct.value) return []
-          
-          const productId = parsedProduct.value.id
-          const links = []
-          
-          if (parsedProduct.value.platform !== 'tmall') {
-            links.push({ name: '天猫', icon: '🛒', url: `https://list.tmall.com/search_product.htm?q=${productId}` })
-          }
-          if (parsedProduct.value.platform !== 'jd') {
-            links.push({ name: '京东', icon: '📦', url: `https://search.jd.com/Search?keyword=${productId}` })
-          }
-          if (parsedProduct.value.platform !== 'pinduoduo') {
-            links.push({ name: '拼多多', icon: '💰', url: `https://mobile.pinduoduo.com/search_result.html?keyword=${productId}` })
-          }
-          links.push({ name: '淘宝', icon: '👕', url: `https://s.taobao.com/search?q=${productId}` })
-          links.push({ name: '苏宁', icon: '📺', url: `https://search.suning.com/${productId}/` })
-          
-          return links
+        onMounted(() => {
+          loadExtensionData()
         })
 
         const applyPreset = (key) => {
@@ -625,8 +543,7 @@
 
         return {
           darkMode,
-          productLink,
-          parsedProduct,
+          extensionDataLoaded,
           category,
           hasVip,
           hasIndustryCoupon,
@@ -639,9 +556,6 @@
           presets,
           platformsForComparison,
           currentCategory,
-          searchLinks,
-          parseLink,
-          onLinkPaste,
           applyPreset,
           hasAnyPrice,
           comparisonResults,
