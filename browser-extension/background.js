@@ -41,7 +41,7 @@ async function clearStoredPrices() {
 }
 
 function openComparisonPage(productData) {
-  const url = new URL('http://localhost:8080');
+  const url = new URL('https://fenghao989-rgb.github.io/618-comparision');
   if (productData) {
     url.hash = `import?platform=${productData.platform}&id=${productData.productId}&price=${productData.price}`;
   }

@@ -1,5 +1,5 @@
 const STORAGE_KEY = '618_price_data';
-const COMPARISON_URL = 'http://localhost:8080';
+const COMPARISON_URL = 'https://fenghao989-rgb.github.io/618-comparision';
 
 const platformIcons = {
   taobao: '🛒',
