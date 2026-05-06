@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>618满减比价助手</title>
+  <title>618满减比价助手 - 链接解析版</title>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -33,6 +33,12 @@
     .card-hover:hover {
       transform: translateY(-4px);
     }
+    .platform-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gray-50 dark:bg-dark transition-colors duration-300">
@@ -42,10 +48,10 @@
       <div class="container mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <span class="text-4xl">🔥</span>
+            <span class="text-4xl">🔗</span>
             <div>
               <h1 class="text-2xl md:text-3xl font-bold">618 满减比价助手</h1>
-              <p class="text-sm opacity-80">智能计算最优价格，省钱又省心</p>
+              <p class="text-sm opacity-80">粘贴商品链接，智能比价</p>
             </div>
           </div>
           <button 
@@ -60,9 +66,105 @@
     </header>
 
     <main class="container mx-auto px-4 py-8">
+      <!-- 链接输入区 -->
+      <div class="mb-8">
+        <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <i class="fas fa-link"></i> 商品链接解析
+          </h2>
+          
+          <div class="flex gap-3">
+            <input 
+              v-model="productLink"
+              type="text"
+              placeholder="粘贴淘宝/天猫/京东/拼多多商品链接..."
+              class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              @paste="onLinkPaste"
+              @input="onLinkInput"
+            />
+            <button 
+              @click="parseLink"
+              class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition-colors font-medium"
+            >
+              <i class="fas fa-magic"></i> 解析
+            </button>
+          </div>
+          
+          <!-- 解析结果 -->
+          <div v-if="parsedProduct" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">{{ parsedProduct.icon }}</span>
+                <div>
+                  <p class="font-semibold text-gray-800 dark:text-gray-200">{{ parsedProduct.name }}</p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ parsedProduct.url }}</p>
+                </div>
+              </div>
+              <span :class="['platform-tag', parsedProduct.platform === 'tmall' ? 'bg-red-100 text-red-600' : parsedProduct.platform === 'jd' ? 'bg-red-100 text-red-600' : parsedProduct.platform === 'pinduoduo' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600']">
+                {{ parsedProduct.platformName }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- 快速搜索链接 -->
+          <div v-if="parsedProduct" class="mt-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">在其他平台搜索同款商品：</p>
+            <div class="flex flex-wrap gap-2">
+              <a 
+                v-for="(platform, key) in searchLinks" 
+                :key="key"
+                :href="platform.url"
+                target="_blank"
+                class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                <span>{{ platform.icon }}</span>
+                {{ platform.name }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 多平台价格输入 -->
+      <div class="mb-8">
+        <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <i class="fas fa-shopping-cart"></i> 多平台价格对比
+          </h2>
+          
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div 
+              v-for="(platform, key) in platformsForComparison" 
+              :key="key"
+              class="p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-primary/50 transition-colors"
+            >
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-xl">{{ platform.icon }}</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">{{ platform.name }}</span>
+              </div>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
+                <input 
+                  v-model.number="platformPrices[key]"
+                  type="number"
+                  placeholder="输入价格"
+                  class="w-full pl-6 pr-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
+                />
+              </div>
+              <button 
+                @click="platformPrices[key] = 0"
+                class="mt-2 w-full text-xs text-gray-500 hover:text-primary transition-colors"
+              >
+                清除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 场景预设 -->
       <div class="mb-8">
-        <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">快速场景选择</h2>
+        <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">优惠券预设</h2>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
           <button
             v-for="(preset, key) in presets"
@@ -86,23 +188,9 @@
         <div class="lg:col-span-1">
           <div class="bg-white dark:bg-darker rounded-xl shadow-lg p-6">
             <h2 class="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              <i class="fas fa-input-text"></i> 商品信息
+              <i class="fas fa-input-text"></i> 优惠设置
             </h2>
             
-            <!-- 商品价格 -->
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">商品价格</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
-                <input 
-                  v-model.number="price"
-                  type="number"
-                  placeholder="请输入商品价格"
-                  class="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                />
-              </div>
-            </div>
-
             <!-- 商品类别 -->
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">商品类别</label>
@@ -180,21 +268,6 @@
                 />
               </div>
             </div>
-
-            <!-- 凑单进度条 -->
-            <div v-if="price > 0" class="mb-6">
-              <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>凑单进度</span>
-                <span>{{ progressInfo.text }}</span>
-              </div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  class="progress-bar h-full bg-gradient-to-r from-primary to-secondary rounded-full"
-                  :style="{ width: progressInfo.percent + '%' }"
-                ></div>
-              </div>
-              <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">{{ progressInfo.tip }}</p>
-            </div>
           </div>
         </div>
 
@@ -205,14 +278,14 @@
               <i class="fas fa-chart-bar"></i> 比价结果
             </h2>
             
-            <div v-if="!price || price <= 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+            <div v-if="!hasAnyPrice" class="text-center py-12 text-gray-500 dark:text-gray-400">
               <i class="fas fa-shopping-cart text-6xl mb-4 opacity-30"></i>
               <p>请输入商品价格开始计算</p>
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div 
-                v-for="result in results" 
+                v-for="result in comparisonResults" 
                 :key="result.platform"
                 :class="[
                   'p-4 rounded-xl border-2 transition-all card-hover',
@@ -267,13 +340,13 @@
             </div>
 
             <!-- 最优选择提示 -->
-            <div v-if="price > 0 && bestResult" class="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 rounded-xl">
+            <div v-if="hasAnyPrice && bestComparisonResult" class="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 rounded-xl">
               <div class="flex items-center gap-3">
                 <span class="text-3xl">🎉</span>
                 <div>
-                  <p class="font-semibold text-gray-800 dark:text-gray-200">最佳选择：{{ bestResult.name }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-200">最佳选择：{{ bestComparisonResult.name }}</p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
-                    实付 ¥{{ bestResult.final }}，相当于原价的 {{ bestResult.discountPercent }}%，共节省 ¥{{ bestResult.saved }}
+                    实付 ¥{{ bestComparisonResult.final }}，相当于原价的 {{ bestComparisonResult.discountPercent }}%，共节省 ¥{{ bestComparisonResult.saved }}
                   </p>
                 </div>
               </div>
@@ -293,15 +366,15 @@
   </div>
 
   <script>
-    const { createApp, ref, computed, watch } = Vue
+    const { createApp, ref, computed, watch, reactive } = Vue
 
     const rules = {
       platforms: {
-        tmall: { name: '天猫 618', threshold: 300, discount: 50, officialReduction: 0.15, vipDiscount: { name: '88VIP', threshold: 1500, discount: 120 }, extraReductions: 30, icon: '🛒' },
-        jd: { name: '京东 618', threshold: 299, discount: 50, officialReduction: 0.1, vipDiscount: { name: 'PLUS', threshold: 1999, discount: 150 }, extraReductions: 60, icon: '📦' },
-        pinduoduo: { name: '拼多多 618', threshold: 200, discount: 30, officialReduction: 0.12, vipDiscount: { name: '超级会员', threshold: 1000, discount: 80 }, extraReductions: 20, icon: '💰' },
-        suning: { name: '苏宁 618', threshold: 399, discount: 60, officialReduction: 0.1, vipDiscount: { name: 'SUPER', threshold: 1500, discount: 100 }, extraReductions: 40, icon: '📺' },
-        taobao: { name: '淘宝 618', threshold: 200, discount: 30, officialReduction: 0.1, extraReductions: 15, icon: '👕' },
+        tmall: { name: '天猫', threshold: 300, discount: 50, officialReduction: 0.15, vipDiscount: { name: '88VIP', threshold: 1500, discount: 120 }, extraReductions: 30, icon: '🛒' },
+        jd: { name: '京东', threshold: 299, discount: 50, officialReduction: 0.1, vipDiscount: { name: 'PLUS', threshold: 1999, discount: 150 }, extraReductions: 60, icon: '📦' },
+        pinduoduo: { name: '拼多多', threshold: 200, discount: 30, officialReduction: 0.12, vipDiscount: { name: '超级会员', threshold: 1000, discount: 80 }, extraReductions: 20, icon: '💰' },
+        suning: { name: '苏宁', threshold: 399, discount: 60, officialReduction: 0.1, vipDiscount: { name: 'SUPER', threshold: 1500, discount: 100 }, extraReductions: 40, icon: '📺' },
+        taobao: { name: '淘宝', threshold: 200, discount: 30, officialReduction: 0.1, extraReductions: 15, icon: '👕' },
         jd_mall: { name: '京东自营', threshold: 299, discount: 50, officialReduction: 0.12, vipDiscount: { name: 'PLUS', threshold: 1999, discount: 150 }, extraReductions: 80, icon: '🚚' }
       },
       categories: {
@@ -328,19 +401,111 @@
     createApp({
       setup() {
         const darkMode = ref(false)
-        const price = ref(0)
+        const productLink = ref('')
+        const parsedProduct = ref(null)
         const category = ref('digital')
         const hasVip = ref(false)
         const hasIndustryCoupon = ref(false)
         const hasSubsidy = ref(false)
         const giftValue = ref(0)
         const currentPreset = ref('')
+        
+        const platformPrices = reactive({
+          tmall: 0,
+          jd: 0,
+          pinduoduo: 0,
+          suning: 0,
+          taobao: 0,
+          jd_mall: 0
+        })
 
         const platforms = computed(() => rules.platforms)
         const categories = computed(() => rules.categories)
         const presets = computed(() => rules.presets)
 
+        const platformsForComparison = computed(() => {
+          return Object.entries(platforms.value).map(([key, platform]) => ({
+            ...platform,
+            key
+          }))
+        })
+
         const currentCategory = computed(() => categories.value[category.value])
+
+        const parseLink = () => {
+          const link = productLink.value.trim()
+          if (!link) return
+
+          const platformInfo = parseProductLink(link)
+          if (platformInfo) {
+            parsedProduct.value = platformInfo
+          } else {
+            parsedProduct.value = null
+          }
+        }
+
+        const onLinkPaste = () => {
+          setTimeout(() => parseLink(), 100)
+        }
+
+        const onLinkInput = () => {
+          parsedProduct.value = null
+        }
+
+        const parseProductLink = (url) => {
+          const patterns = {
+            tmall: /(?:tmall\.com|taobao\.com).*?(?:id=(\d+)|item\/(\d+))/i,
+            jd: /jd\.com.*?(\d{6,13})/i,
+            pinduoduo: /pinduoduo\.com.*?(\d{8,})/i
+          }
+
+          for (const [platform, pattern] of Object.entries(patterns)) {
+            const match = url.match(pattern)
+            if (match) {
+              const productId = match[1] || match[2]
+              return {
+                platform,
+                platformName: getPlatformName(platform),
+                icon: getPlatformIcon(platform),
+                id: productId,
+                name: `商品 ID: ${productId}`,
+                url
+              }
+            }
+          }
+          return null
+        }
+
+        const getPlatformName = (platform) => {
+          const names = { tmall: '天猫', jd: '京东', pinduoduo: '拼多多', taobao: '淘宝', suning: '苏宁' }
+          return names[platform] || platform
+        }
+
+        const getPlatformIcon = (platform) => {
+          const icons = { tmall: '🛒', jd: '📦', pinduoduo: '💰', taobao: '👕', suning: '📺' }
+          return icons[platform] || '📦'
+        }
+
+        const searchLinks = computed(() => {
+          if (!parsedProduct.value) return []
+          
+          const productId = parsedProduct.value.id
+          const links = []
+          
+          if (parsedProduct.value.platform !== 'tmall') {
+            links.push({ name: '天猫', icon: '🛒', url: `https://list.tmall.com/search_product.htm?q=${productId}` })
+          }
+          if (parsedProduct.value.platform !== 'jd') {
+            links.push({ name: '京东', icon: '📦', url: `https://search.jd.com/Search?keyword=${productId}` })
+          }
+          if (parsedProduct.value.platform !== 'pinduoduo') {
+            links.push({ name: '拼多多', icon: '💰', url: `https://mobile.pinduoduo.com/search_result.html?keyword=${productId}` })
+          }
+          links.push({ name: '淘宝', icon: '👕', url: `https://s.taobao.com/search?q=${productId}` })
+          links.push({ name: '苏宁', icon: '📺', url: `https://search.suning.com/${productId}/` })
+          
+          return links
+        })
 
         const applyPreset = (key) => {
           const preset = presets.value[key]
@@ -353,45 +518,25 @@
           }
         }
 
-        const progressInfo = computed(() => {
-          if (!price.value) return { percent: 0, text: '请输入价格', tip: '' }
-          
-          const thresholds = Object.values(platforms.value).map(p => p.threshold)
-          const minThreshold = Math.min(...thresholds)
-          
-          const current = price.value
-          const target = Math.ceil(current / minThreshold) * minThreshold
-          const needed = target - current
-          const percent = Math.min(100, (current / target) * 100)
-          
-          if (needed <= 0) {
-            return { 
-              percent: 100, 
-              text: '已满足满减条件', 
-              tip: `当前金额可享受 ${Math.floor(current / minThreshold)} 次满减` 
-            }
-          }
-          
-          return { 
-            percent, 
-            text: `还差 ¥${needed.toFixed(2)} 可减 ¥${Math.floor(target / minThreshold) * 50}`, 
-            tip: `建议再凑单 ¥${needed.toFixed(2)} 的商品` 
-          }
+        const hasAnyPrice = computed(() => {
+          return Object.values(platformPrices).some(p => p > 0)
         })
 
-        const results = computed(() => {
-          if (!price.value || price.value <= 0) return []
+        const comparisonResults = computed(() => {
+          if (!hasAnyPrice.value) return []
           
-          const original = price.value
           const cat = categories.value[category.value]
           const results = []
           
           for (const [key, platform] of Object.entries(platforms.value)) {
-            let final = original
+            const originalPrice = platformPrices[key]
+            if (!originalPrice || originalPrice <= 0) continue
+            
+            let final = originalPrice
             const steps = {}
             
             if (platform.officialReduction) {
-              const reduction = original * platform.officialReduction
+              const reduction = originalPrice * platform.officialReduction
               final -= reduction
               steps.reduction = reduction.toFixed(2)
             }
@@ -428,14 +573,14 @@
             }
             
             final = Math.max(0, final)
-            const saved = (original - final).toFixed(2)
-            const discountPercent = ((final / original) * 100).toFixed(1)
+            const saved = (originalPrice - final).toFixed(2)
+            const discountPercent = ((final / originalPrice) * 100).toFixed(1)
             
             results.push({
               platform: key,
               name: platform.name,
               icon: platform.icon,
-              original: original.toFixed(2),
+              original: originalPrice.toFixed(2),
               final: final.toFixed(2),
               saved,
               discountPercent,
@@ -456,8 +601,8 @@
           return results
         })
 
-        const bestResult = computed(() => {
-          return results.value.find(r => r.isBest)
+        const bestComparisonResult = computed(() => {
+          return comparisonResults.value.find(r => r.isBest)
         })
 
         const toggleDarkMode = () => {
@@ -480,21 +625,27 @@
 
         return {
           darkMode,
-          price,
+          productLink,
+          parsedProduct,
           category,
           hasVip,
           hasIndustryCoupon,
           hasSubsidy,
           giftValue,
           currentPreset,
+          platformPrices,
           platforms,
           categories,
           presets,
+          platformsForComparison,
           currentCategory,
+          searchLinks,
+          parseLink,
+          onLinkPaste,
           applyPreset,
-          progressInfo,
-          results,
-          bestResult,
+          hasAnyPrice,
+          comparisonResults,
+          bestComparisonResult,
           toggleDarkMode
         }
       }
